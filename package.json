@@ -5,6 +5,7 @@
   "private": true,
   "dependencies": {
     "egg": "^1.8.0",
+    "egg-cors": "^1.2.0",
     "egg-scripts": "^1.2.0",
     "md5": "^2.2.1"
   },
