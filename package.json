@@ -4,8 +4,10 @@
   "description": "",
   "private": true,
   "dependencies": {
+    "async-promise-queue": "^1.0.4",
     "egg": "^1.8.0",
     "egg-cors": "^1.2.0",
+    "egg-mysql": "^3.0.0",
     "egg-scripts": "^1.2.0",
     "md5": "^2.2.1"
   },

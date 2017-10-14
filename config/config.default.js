@@ -14,7 +14,17 @@ module.exports = appInfo => {
     allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH',
     credentials: true,
   };
-
+  config.mysql = {
+    client: {
+      host: '594e17250df88.sh.cdb.myqcloud.com',
+      port: '11820',
+      user: 'cdb_outerroot',
+      password: 'lixueqing1127##',
+      database: 'mybtc',
+    },
+    app: true,
+    agent: false,
+  };
   config.security = {
     xframe: {
       enable: false,

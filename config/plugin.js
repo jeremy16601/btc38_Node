@@ -7,3 +7,8 @@ exports.cors = {
     package: 'egg-cors',
 };
 exports.security = false;
+
+exports.mysql = {
+  enable: true,
+  package: 'egg-mysql',
+};

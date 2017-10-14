@@ -6,10 +6,8 @@ module.exports = app => {
 
         * robot_INF(ctx) {
             // const nowPrice = yield this.service.robot.getPrice('INF');
-           
-          
-            const start=yield this.service.robot.startRobot();
-
+            const amount='100';
+            const start = yield this.service.robot.startBuyRobot(ctx.query.coinname,amount);
             ctx.body = start
         }
 
