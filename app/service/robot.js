@@ -125,11 +125,13 @@ module.exports = app => {
                             const currentData = yield self.getPrice(coinname);
                             const currentPrice = currentData.asks[0][0];
                             //如果原始价格跟当前价格相差2.2%  卖出
-                            let mPrice = parseFloat(price) + parseFloat(price * 0.022);
+                            let mPrice = 0;
 
-                            if(coinname=='INF'){
+                            if (coinname == 'INF') {
                                 //如果是迅链 ，直接挂单
                                 mPrice = parseFloat(price) + parseFloat(price * 0.016);
+                            } else {
+                                mPrice = parseFloat(price + (price * 0.022))
                             }
                             console.log('卖单开始价格：' + price + '结束价格：' + currentPrice + '一分钟后2% 的价格：' + mPrice.toFixed(5));
                             if (currentPrice > mPrice.toFixed(5)) {
