@@ -68,7 +68,13 @@ module.exports = app => {
                             const currentData = yield self.getPrice(coinname);
                             const currentPrice = currentData.bids[0][0];
                             //如果原始价格跟当前价格相差2.2%  买入
-                            const mPrice = parseFloat(price) + parseFloat(price * 0.018);
+                            let mPrice = 0;
+                            if (coinname == 'INF') {
+                                mPrice = parseFloat(price) + parseFloat(price * 0.018);
+                            } else {
+                                mPrice = parseFloat(price) + parseFloat(price * 0.01);
+                            }
+
                             console.warn('买单价格：' + price + '结束价格：' + currentPrice);
                             if (currentPrice > mPrice.toFixed(5)) {
                                 console.log('----------------------------买入------------------------------！')
