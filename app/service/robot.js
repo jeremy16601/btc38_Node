@@ -6,7 +6,7 @@ module.exports = app => {
 
         //得到最新价格
         * getPrice(coinname) {
-            const result = yield this.ctx.curl('http://localhost:7002/getDepth?coinname=' + coinname, {
+            const result = yield this.ctx.curl('http://localhost:7001/getDepth?coinname=' + coinname, {
                 method: 'GET',
                 dataType: 'json',
             });
@@ -16,8 +16,8 @@ module.exports = app => {
             const asks = result.data.asks;
             //当前最新价格
             const nowPrice = bids[0];
-            console.log('最新价格INF：' + nowPrice[0]);
-            return nowPrice[0];
+            console.log(coinname+'最新价格：' + nowPrice[0]);
+            return result.data;
         }
 
         /**
@@ -27,6 +27,7 @@ module.exports = app => {
         * submitOrder(type, price, amount, coinname) {
             const self = this;
             const tims = Date.parse(new Date());
+            //console.log('类型'+type+' =='+price+' --'+amount+'---'+coinname)
             const result = yield self.ctx.curl('http://api.btc38.com/v1/submitOrder.php', {
                 method: 'POST',
                 data: {
@@ -47,12 +48,13 @@ module.exports = app => {
 
         //开启机器人
         * startBuyRobot(coinname, amount) {
-            //获取价格
-            let price = yield this.getPrice(coinname);
+            let data = yield this.getPrice(coinname); //获取价格
+            let price = data.bids[0][0]; 
+            let old_price=price; //原始价格
             //开始时间
             let currentTime = Date.parse(new Date());
             //结束时间
-            let endTime = parseInt(currentTime + (60 * 1000));
+            let endTime = parseInt(currentTime + (60* 1000));
             const self = this;
 
             //开启循环
@@ -63,33 +65,38 @@ module.exports = app => {
                         // console.log('执行了循环currentTime=' + currentTime + '   endTime=' + endTime);
                         if (currentTime == endTime) {
                             //结束时候获取价格和之前的对比 
-                            const currentPrice = yield self.getPrice(coinname);
+                            const currentData = yield self.getPrice(coinname);
+                            const currentPrice = currentData.bids[0][0];
                             //如果原始价格跟当前价格相差2.2%  买入
                             const mPrice = parseFloat(price) + parseFloat(price * 0.018);
                             console.warn('买单价格：' + price + '结束价格：' + currentPrice);
                             if (currentPrice > mPrice.toFixed(5)) {
                                 console.log('----------------------------买入------------------------------！')
+                                yield self.app.dingtalkRobot.sendText(coinname+ '挂单成功！价格：'+ currentPrice);
                                 yield self.submitOrder('1', currentPrice, amount, coinname);
                                 //保存数据库
                                 let params = {};
-                                params.amount = '333.2';
+                                params.amount = amount;
                                 params.coinname = coinname;
                                 params.price = price;
                                 params.buy_price = currentPrice;
                                 params.type = '1';
                                 params.order_id = currentTime;
-                                //重置价格
-                                price = currentPrice;
                                 yield self.saveToDB(params);
                                 //加入卖出任务
-                                yield self.sellCoin(currentTime, coinname);
+                                yield self.sellCoin(currentTime, currentPrice,coinname,amount);
                             }
-                            if (currentPrice < price) {
-                                console.log('----------------------------警告！！！降了！原价：' + price + '当前价格：' + currentPrice);
+                            //
+                            if (   parseFloat((currentPrice*0.006)+currentPrice) < price) {
+                                yield self.app.dingtalkRobot.sendText(coinname+ '警告！！！降了！原价：' + price + '当前价格：' + currentPrice);
+                                console.log(coinname+ '-警告！！！降了！原价：' + price + '当前价格：' + currentPrice);
                             }
 
-                            console.log('价格没变化，重新开始。' + endTime);
-                            price = yield self.getPrice(coinname);
+                            console.log('买单价格没变化，重新开始。' +price);
+                              //重置价格
+                              price = currentPrice;
+                            // yield self.app.dingtalkRobot.sendText('买单价格没变化，重新开始。' +price);
+                            //price = yield self.getPrice(coinname);
                             endTime = parseInt(currentTime + (60 * 1000));
                         };
                     })
@@ -99,11 +106,9 @@ module.exports = app => {
         }
 
         //卖出任务
-        * sellCoin(id, coinname) {
+        * sellCoin(id, price,coinname,amount) {
             console.log(coinname + '订单ID：' + id + '开启卖单监控');
-            //获取价格
-            let price = yield this.getPrice(coinname);
-            //开始时间
+           //开始时间
             let currentTime = Date.parse(new Date());
             //结束时间
             let endTime = parseInt(currentTime + (60 * 1000));
@@ -117,19 +122,26 @@ module.exports = app => {
                         // console.log('执行了循环currentTime=' + currentTime + '   endTime=' + endTime);
                         if (currentTime == endTime) {
                             //结束时候获取价格和之前的对比 
-                            const currentPrice = yield self.getPrice(coinname);
+                            const currentData= yield self.getPrice(coinname);
+                            const currentPrice =currentData.asks[0][0];
                             //如果原始价格跟当前价格相差2.2%  卖出
-                            const mPrice = parseFloat(price) + parseFloat(price * 0.2);
+                            let mPrice = parseFloat(price) + parseFloat(price * 0.015);
+                            
+                            // if(coinname=='INF'){
+                            //     //如果是迅链 ，直接挂单
+                            //     mPrice = parseFloat(price) + parseFloat(price * 0.018);
+                            // }
                             console.log('卖单开始价格：' + price + '结束价格：' + currentPrice + '一分钟后2% 的价格：' + mPrice.toFixed(5));
                             if (currentPrice > mPrice.toFixed(5)) {
                                 console.log('----------------------------卖出------------------------------！')
+                                yield self.app.dingtalkRobot.sendText(coinname+ '卖出。原价' +price+'现价：'+currentPrice);
                                 yield self.submitOrder('2', currentPrice, amount, coinname);
                                 //保存数据库
                                 let params = {};
+                                params.amount = amount;
                                 params.sell_price = currentPrice;
                                 params.type = '2';
-                                //重置价格
-                                price = currentPrice;
+                                
                                 yield self.updateToDB(params);
                                 //加入卖出任务
                                 clearInterval(interval);
@@ -137,13 +149,20 @@ module.exports = app => {
                             // if (currentPrice < price) {
                             //     console.log('----------------------------警告！！！降了！原价：' + price + '当前价格：' + currentPrice);
                             // }
-
-                            console.log('价格没变化，重新开始。' + endTime);
-                            price = yield self.getPrice(coinname);
+                            //重置价格
+                            price = currentPrice;
+                            console.log('卖单价格没变化，重新开始。' + price );
+                            // yield self.app.dingtalkRobot.sendText('卖单价格没变化，重新开始。' +price);
+                            //price = yield self.getPrice(coinname);
                             endTime = parseInt(currentTime + (60 * 1000));
                         };
                     })
                 }, 1000);
+        }
+
+        //根据原始价格判断，启动后如果跌幅超过3%，发送警告，停止。
+        * checkPrice(old_price){
+
         }
 
         //保存挂单到数据库
@@ -161,6 +180,7 @@ module.exports = app => {
             const result = yield this.app.mysql.insert('btc_order', params);
             return result;
         }
+
     }
     return Robot;
 };

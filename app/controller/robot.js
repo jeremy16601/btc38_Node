@@ -4,10 +4,10 @@ const md5 = require('md5');
 module.exports = app => {
     class RobotController extends app.Controller {
 
-        * robot_INF(ctx) {
+        * robot_coinname(ctx) {
             // const nowPrice = yield this.service.robot.getPrice('INF');
             const amount='100';
-            const start = yield this.service.robot.startBuyRobot(ctx.query.coinname,amount);
+            const start = yield this.service.robot.startBuyRobot(ctx.query.coinname,ctx.query.amount);
             ctx.body = start
         }
 

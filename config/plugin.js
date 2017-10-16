@@ -12,3 +12,8 @@ exports.mysql = {
   enable: true,
   package: 'egg-mysql',
 };
+
+exports.dingtalkRobot = {
+  enable: true,
+  package: 'egg-dingtalk-robot',
+};

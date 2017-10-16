@@ -11,5 +11,5 @@ module.exports = app => {
 
   app.get('/getDepth', 'home.getDepth')
 
-  app.get('/robot_INF', 'robot.robot_INF')
+  app.get('/robot_coinname', 'robot.robot_coinname')
 };

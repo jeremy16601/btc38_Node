@@ -25,6 +25,11 @@ module.exports = appInfo => {
     app: true,
     agent: false,
   };
+  exports.dingtalkRobot = {
+    // 机器人的accessToken
+    accessToken: '0985fb30747b95f5dce596d4c39a89c756deb76e22fbbf3e608d305e86071d6c',
+  };
+
   config.security = {
     xframe: {
       enable: false,
