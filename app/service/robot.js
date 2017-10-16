@@ -54,7 +54,7 @@ module.exports = app => {
             //开始时间
             let currentTime = Date.parse(new Date());
             //结束时间
-            let endTime = parseInt(currentTime + (60 * 1000));
+            let endTime = parseInt(currentTime + (30 * 1000));
             const self = this;
 
             //开启循环
@@ -117,7 +117,7 @@ module.exports = app => {
             //开始时间
             let currentTime = Date.parse(new Date());
             //结束时间
-            let endTime = parseInt(currentTime + (60 * 1000));
+            let endTime = parseInt(currentTime + (3 * 1000));
             const self = this;
 
             //开启循环
@@ -131,15 +131,15 @@ module.exports = app => {
                             const currentData = yield self.getPrice(coinname);
                             const currentPrice = currentData.asks[0][0];
                             //如果原始价格跟当前价格相差2.2%  卖出
-                            let mPrice = 0;
+                            let mPrice = parseFloat(price) + parseFloat(price * 0.025);;
 
-                            if (coinname == 'INF') {
-                                //如果是迅链 ，直接挂单
-                                mPrice = parseFloat(price) + parseFloat(price * 0.016);
-                            } else {
-                                mPrice = parseFloat(price + (price * 0.022))
-                            }
-                            console.log('卖单开始价格：' + price + '结束价格：' + currentPrice + '一分钟后2% 的价格：' + mPrice.toFixed(5));
+                            // if (coinname == 'INF') {
+                            //     //如果是迅链 ，直接挂单
+                                
+                            // } else {
+                            //     mPrice = parseFloat(price + (price * 0.022))
+                            // }
+                            console.log('卖单开始价格：' + price + '结束价格：' + currentPrice + '一分钟后2.5% 的价格：' + mPrice.toFixed(5));
                             if (currentPrice > mPrice.toFixed(5)) {
                                 console.log('----------------------------卖出------------------------------！')
                                 yield self.app.dingtalkRobot.sendText(coinname + '卖出。原价' + price + '现价：' + currentPrice);
